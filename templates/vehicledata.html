@@ -3,60 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle Insurance Prediction</title>
-    <!-- Corrected the CSS path -->
+    <title>DriveShield AI — Vehicle Insurance Prediction</title>
+    <meta name="description" content="Predict customer purchase propensity for vehicle insurance using Machine Learning">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Vehicle Insurance Prediction</h1>
-
-        <form method="post" action="/">
-            <label for="Gender">Gender (1: Male, 0: Female):</label>
-            <input type="number" id="Gender" name="Gender" min="0" max="1" required>
-
-            <label for="Age">Age:</label>
-            <input type="number" id="Age" name="Age" required>
-
-            <label for="Driving_License">Driving License (0: No, 1: Yes):</label>
-            <input type="number" id="Driving_License" name="Driving_License" min="0" max="1" required>
-
-            <label for="Region_Code">Region Code:</label>
-            <input type="number" step="0.01" id="Region_Code" name="Region_Code" required>
-
-            <label for="Previously_Insured">Previously Insured (0: No, 1: Yes):</label>
-            <input type="number" id="Previously_Insured" name="Previously_Insured" min="0" max="1" required>
-
-            <label for="Annual_Premium">Annual Premium:</label>
-            <input type="number" step="0.01" id="Annual_Premium" name="Annual_Premium" required>
-
-            <label for="Policy_Sales_Channel">Policy Sales Channel:</label>
-            <input type="number" step="0.01" id="Policy_Sales_Channel" name="Policy_Sales_Channel" required>
-
-            <label for="Vintage">Vintage:</label>
-            <input type="number" id="Vintage" name="Vintage" required>
-
-            <label for="Vehicle_Age_lt_1_Year">Vehicle Age < 1 Year (0: No, 1: Yes):</label>
-            <input type="number" id="Vehicle_Age_lt_1_Year" name="Vehicle_Age_lt_1_Year" min="0" max="1" required>
-
-            <label for="Vehicle_Age_gt_2_Years">Vehicle Age > 2 Years (0: No, 1: Yes):</label>
-            <input type="number" id="Vehicle_Age_gt_2_Years" name="Vehicle_Age_gt_2_Years" min="0" max="1" required>
-
-            <label for="Vehicle_Damage_Yes">Vehicle Damage (0: No, 1: Yes):</label>
-            <input type="number" id="Vehicle_Damage_Yes" name="Vehicle_Damage_Yes" min="0" max="1" required>
-
-            <button type="submit">Predict</button>
-        </form>
-
-        <form method="get" action="/train">
-            <button type="submit" class="train-button">Train Model</button>
-        </form>
-
-        {% if context %}
-            <div class="result">
-                <h2>Result: {{ context }}</h2>
+    <div class="wrapper">
+        <!-- Top Navigation / Header -->
+        <header class="header-card">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <div class="brand-info">
+                    <h1>AutoInsure AI</h1>
+                    <p>Machine Learning Vehicle Insurance Prediction System</p>
+                </div>
             </div>
+            <div class="header-actions">
+                <a href="/train" class="btn-secondary" title="Retrain or update model pipeline" onclick="return confirm('Trigger model training pipeline? This might take a few minutes.')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    Train Model
+                </a>
+            </div>
+        </header>
+
+        <!-- Prediction Result Display -->
+        {% if context %}
+            {% if context == "Response-Yes" %}
+            <section class="result-card success" id="prediction-result">
+                <div class="result-content">
+                    <div class="result-badge-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="result-title">High Purchase Propensity — Response: YES</div>
+                        <p class="result-desc">The predictive model indicates this customer has a <strong>strong interest</strong> in purchasing vehicle insurance. Recommended for direct outreach.</p>
+                    </div>
+                </div>
+                <span class="result-tag">Interested</span>
+            </section>
+            {% else %}
+            <section class="result-card warning" id="prediction-result">
+                <div class="result-content">
+                    <div class="result-badge-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="result-title">Low Purchase Propensity — Response: NO</div>
+                        <p class="result-desc">The predictive model estimates this customer is <strong>unlikely to purchase</strong> vehicle insurance based on historical behavioral patterns.</p>
+                    </div>
+                </div>
+                <span class="result-tag">Not Interested</span>
+            </section>
+            {% endif %}
         {% endif %}
+
+        <!-- Main Prediction Form -->
+        <main class="main-card">
+            <div class="form-header">
+                <div>
+                    <h2 class="form-title">Customer & Policy Attributes</h2>
+                    <p class="form-subtitle">Enter customer information to predict vehicle insurance response</p>
+                </div>
+                <button type="button" class="sample-btn" id="load-sample-btn" onclick="fillSampleData()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    Fill Sample Data
+                </button>
+            </div>
+
+            <form method="post" action="/" id="prediction-form">
+                <div class="sections-container">
+                    
+                    <!-- Section 1: Customer Profile -->
+                    <div class="form-section">
+                        <div class="section-label">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Driver Demographics
+                        </div>
+                        <div class="fields-grid">
+                            <!-- Gender -->
+                            <div class="field-group">
+                                <label for="Gender">
+                                    Gender
+                                    <span class="field-hint">Driver gender</span>
+                                </label>
+                                <div class="input-container">
+                                    <select id="Gender" name="Gender" required>
+                                        <option value="Male" {% if form_data.get('Gender') in ['Male', '1'] %}selected{% endif %}>Male</option>
+                                        <option value="Female" {% if form_data.get('Gender') in ['Female', '0'] %}selected{% endif %}>Female</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Age -->
+                            <div class="field-group">
+                                <label for="Age">
+                                    Age
+                                    <span class="field-hint">18 - 85 years</span>
+                                </label>
+                                <div class="input-container">
+                                    <input type="number" id="Age" name="Age" min="18" max="100" placeholder="e.g. 35" value="{{ form_data.get('Age', '') }}" required>
+                                </div>
+                            </div>
+
+                            <!-- Driving License -->
+                            <div class="field-group">
+                                <label for="Driving_License">
+                                    Driving License
+                                    <span class="field-hint">License possession</span>
+                                </label>
+                                <div class="input-container">
+                                    <select id="Driving_License" name="Driving_License" required>
+                                        <option value="Yes" {% if form_data.get('Driving_License') in ['Yes', '1', None] %}selected{% endif %}>Yes (Has Valid License)</option>
+                                        <option value="No" {% if form_data.get('Driving_License') in ['No', '0'] %}selected{% endif %}>No (No License)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Region Code -->
+                            <div class="field-group">
+                                <label for="Region_Code">
+                                    Region Code
+                                    <span class="field-hint">Geographic code</span>
+                                </label>
+                                <div class="input-container">
+                                    <input type="number" step="1" id="Region_Code" name="Region_Code" placeholder="e.g. 28" value="{{ form_data.get('Region_Code', '') }}" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Policy & Coverage History -->
+                    <div class="form-section">
+                        <div class="section-label">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </svg>
+                            Policy & Insurance Profile
+                        </div>
+                        <div class="fields-grid">
+                            <!-- Previously Insured -->
+                            <div class="field-group">
+                                <label for="Previously_Insured">
+                                    Previously Insured
+                                    <span class="field-hint">Active vehicle policy</span>
+                                </label>
+                                <div class="input-container">
+                                    <select id="Previously_Insured" name="Previously_Insured" required>
+                                        <option value="No" {% if form_data.get('Previously_Insured') in ['No', '0', None] %}selected{% endif %}>No (Currently Uninsured)</option>
+                                        <option value="Yes" {% if form_data.get('Previously_Insured') in ['Yes', '1'] %}selected{% endif %}>Yes (Already Insured)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Annual Premium -->
+                            <div class="field-group">
+                                <label for="Annual_Premium">
+                                    Annual Premium (₹)
+                                    <span class="field-hint">Policy cost</span>
+                                </label>
+                                <div class="input-container">
+                                    <input type="number" step="100" id="Annual_Premium" name="Annual_Premium" placeholder="e.g. 32000" value="{{ form_data.get('Annual_Premium', '') }}" required>
+                                </div>
+                            </div>
+
+                            <!-- Policy Sales Channel -->
+                            <div class="field-group">
+                                <label for="Policy_Sales_Channel">
+                                    Sales Channel
+                                    <span class="field-hint">Outreach channel code</span>
+                                </label>
+                                <div class="input-container">
+                                    <input type="number" step="1" id="Policy_Sales_Channel" name="Policy_Sales_Channel" placeholder="e.g. 152" value="{{ form_data.get('Policy_Sales_Channel', '') }}" required>
+                                </div>
+                            </div>
+
+                            <!-- Vintage -->
+                            <div class="field-group">
+                                <label for="Vintage">
+                                    Customer Vintage
+                                    <span class="field-hint">Days with company</span>
+                                </label>
+                                <div class="input-container">
+                                    <input type="number" step="1" id="Vintage" name="Vintage" placeholder="e.g. 180" value="{{ form_data.get('Vintage', '') }}" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Vehicle Information -->
+                    <div class="form-section">
+                        <div class="section-label">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 17h14M5 17a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2M5 17l1.5 3h11l1.5-3M7 9l2-4h6l2 4"></path>
+                            </svg>
+                            Vehicle Status
+                        </div>
+                        <div class="fields-grid">
+                            <!-- Vehicle Age -->
+                            <div class="field-group">
+                                <label for="Vehicle_Age">
+                                    Vehicle Age
+                                    <span class="field-hint">Age of vehicle</span>
+                                </label>
+                                <div class="input-container">
+                                    <select id="Vehicle_Age" name="Vehicle_Age" required>
+                                        <option value="< 1 Year" {% if form_data.get('Vehicle_Age') == '< 1 Year' or form_data.get('Vehicle_Age_lt_1_Year') == '1' %}selected{% endif %}>&lt; 1 Year (New)</option>
+                                        <option value="1 - 2 Years" {% if form_data.get('Vehicle_Age') == '1 - 2 Years' or (form_data.get('Vehicle_Age_lt_1_Year') == '0' and form_data.get('Vehicle_Age_gt_2_Years') == '0') %}selected{% endif %}>1 - 2 Years (Standard)</option>
+                                        <option value="> 2 Years" {% if form_data.get('Vehicle_Age') == '> 2 Years' or form_data.get('Vehicle_Age_gt_2_Years') == '1' %}selected{% endif %}>&gt; 2 Years (Older)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Vehicle Damage -->
+                            <div class="field-group">
+                                <label for="Vehicle_Damage">
+                                    Prior Vehicle Damage
+                                    <span class="field-hint">Past damage record</span>
+                                </label>
+                                <div class="input-container">
+                                    <select id="Vehicle_Damage" name="Vehicle_Damage" required>
+                                        <option value="Yes" {% if form_data.get('Vehicle_Damage') in ['Yes', '1'] or form_data.get('Vehicle_Damage_Yes') == '1' %}selected{% endif %}>Yes (Has Prior Damage)</option>
+                                        <option value="No" {% if form_data.get('Vehicle_Damage') in ['No', '0'] or form_data.get('Vehicle_Damage_Yes') == '0' %}selected{% endif %}>No (Accident Free)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="predict-btn">
+                        <span>Predict Purchase Intent</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </main>
+
+        <footer>
+            AutoInsure AI • Vehicle Insurance Propensity Prediction Pipeline
+        </footer>
     </div>
+
+    <script>
+        function fillSampleData() {
+            document.getElementById('Gender').value = 'Male';
+            document.getElementById('Age').value = '42';
+            document.getElementById('Driving_License').value = 'Yes';
+            document.getElementById('Region_Code').value = '28';
+            document.getElementById('Previously_Insured').value = 'No';
+            document.getElementById('Annual_Premium').value = '34500';
+            document.getElementById('Policy_Sales_Channel').value = '152';
+            document.getElementById('Vintage').value = '185';
+            document.getElementById('Vehicle_Age').value = '1 - 2 Years';
+            document.getElementById('Vehicle_Damage').value = 'Yes';
+        }
+    </script>
 </body>
 </html>
